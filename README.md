@@ -1,6 +1,6 @@
-# What is Wolbach?
+# What is Tamias?
 
-Wolbach is a git server much like gitolite aimed at small to (maybe) medium teams.
+Tiamias is a git server much like gitolite aimed at small to (maybe) medium teams.
 Its goal is to make repository creation and destruction as easy as possible as well
 as be completely configurable through the commandline with configuration being
 located in repositories kept to a minimum.
@@ -21,7 +21,7 @@ by having to go through the following workflow just to create a temporary reposi
 
 Even though it does not seem like much, my opinion is that every additional step in
 achieving something discourages users to go through the process.
-So adding a repository in wolbach is achieved by executing:
+So adding a repository in tamias is achieved by executing:
 
 `$ ssh git@myserver add <repository>`
 
@@ -32,12 +32,12 @@ Deleting a repository requires executing:
 # Installation
 
 Create a user that acts as your git user.
-Be aware that regular ssh access will not be possible after installation of wolbach.
-After that build a release version of the wolbach sources on your server by executing:
+Be aware that regular ssh access will not be possible after installation of tamias.
+After that build a release version of the tamias sources on your server by executing:
 
 `$ dub build --build=release`
 
-Then execute `./wolbach install <path to your admin ssh key>` on the server.
+Then execute `./tamias install <path to your admin ssh key>` on the server.
 
 # Usage
 
@@ -68,7 +68,7 @@ The permission 'config' determines who can remove the repository as well as modi
 the owner and access rights of a repository.
 
 The role 'staff', assumed by the user staff and all users assigned to that role is the
-wolbach equivalent of 'root'.
+tamias equivalent of 'root'.
 It has all permissions.
 
 The same holds true for the owner of a repository.
