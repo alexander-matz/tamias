@@ -1,0 +1,9 @@
+{
+	"name": "tamias",
+	"authors": [
+		"Alexander Matz"
+	],
+	"description": "Simple git manager focused on easy creation/destruction of repositories",
+	"copyright": "Copyright © 2016, Alexander Matz",
+	"license": "MIT"
+}
