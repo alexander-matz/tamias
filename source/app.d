@@ -11,12 +11,15 @@ alias log = writefln;
 alias getEnv = environment.get;
 
 void msg(T...)(T a) {
-  writefln(a);
+  import std.stdio : stdout;
+  stdout.writefln(a);
+  stdout.flush();
 }
 
 void msgErr(T...)(T a) {
   import std.stdio : stderr;
   stderr.writefln(a);
+  stderr.flush();
 }
 
 void enforcef(T...)(bool cond, T a) {
