@@ -5,7 +5,8 @@ import tamias.repoloc;
 import tamias.util;
 
 import std.file : exists, mkdir, rmdirRecurse, mkdirRecurse, remove, dirEntries, SpanMode, write, readText;
-import std.path : baseName, globMatch;
+import std.path : baseName;
+import std.string : indexOf;
 import std.algorithm.sorting : sort;
 import std.json : JSONValue, toJSON, parseJSON;
 
@@ -104,7 +105,7 @@ RepoLoc[] repoList(string pattern) {
     auto pretty = repoLocToPretty(loc);
     if (pattern == "") {
       result ~= loc;
-    } else if (globMatch(pretty, pattern)) {
+    } else if (indexOf(pretty, pattern) != -1) {
       result ~= loc;
     }
   }

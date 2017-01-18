@@ -116,7 +116,7 @@ void help() {
   msg("  --- local+ssh commands ---");
   msg("  version              print version number");
   msg("  whoami               print user name and roles");
-  msg("  list                 print repository available to you");
+  msg("  list [filter]        print repository available to you");
   msg("  add <repository>     add new repository");
   msg("  rm <repository>      remove existing repository");
   msg("  config <repository> [settings...");
