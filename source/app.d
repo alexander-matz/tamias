@@ -43,7 +43,7 @@ bool confirm(T...)(T a) {
  */
 
 const string appName = "tamias";
-const string versionString = "1.0.0";
+const string versionString = "v1.1.0";
 
 debug {
   const string buildType = "debug";
@@ -484,26 +484,42 @@ RepoConfig repoConfigUpdateFromOption(RepoConfig conf, string option) {
  * SETUP + ADMIN
  *****************************************************************************/
 
-void install(string initKeyFile) {
-  import std.file : isFile, mkdir, copy, chdir, getcwd, thisExePath, write, preserveAttributesDefault;
+// get username from keyfile
+string userFromKeyfile(string keyfile) {
+  import std.path : baseName, stripExtension;
+  import std.string : lastIndexOf;
+
+  string stripped = baseName(stripExtension(keyfile));
+  auto pos = lastIndexOf(stripped, '@');
+  if (pos > -1) {
+    return stripped[0..pos];
+  } else {
+    return stripped;
+  }
+}
+
+void install(string[] keyfiles) {
+  import std.file : isFile, mkdir, copy, chdir, getcwd, thisExePath, write, append, preserveAttributesDefault;
   import std.format : format;
   import std.socket : Socket;
   import std.string : chomp;
 
-  // Figure out keyfile (try to use .pub first)
-  auto keyFile = chomp(initKeyFile, ".pub") ~ ".pub";
-  if (!exists(keyFile) || !isFile(keyFile)) {
-    keyFile = initKeyFile;
+  // Make sure key files exist (and make sure it's a .pub key)
+  foreach (ref keyfile; keyfiles) {
+    keyfile = chomp(keyfile, ".pub") ~ ".pub";
+    enforcef(exists(keyfile) && isFile(keyfile), "key '%s' not found/not a file", keyfile);
   }
-  enforcef(exists(keyFile) && isFile(keyFile), "inital key '%s' not found/not a file", keyFile);
 
+  // Confirm installation
   enforcef(confirm("install in '%s'?", baseLocation()), "aborted by user");
 
+  // Ensure .ssh exists
   enforcef(exists(expandTilde("~/.ssh")), "~/.ssh does not exist, generate ssh key");
 
   foreach (path; [repoLocation(), configLocation(), keysLocation()]) {
     enforcef(!exists(path), "directory '%s' already exists", path);
   }
+
   msg("creating directories");
   if (!exists(baseLocation())) {
     mkdir(baseLocation());
@@ -522,8 +538,8 @@ void install(string initKeyFile) {
                               "  name=%s server", appName, Socket.hostName(), appName));
   }
 
-
   msg("creating keys and initializing repository");
+  // add empty key repository
   const auto keysLoc = RepoLoc("", "keys");
   const auto keysBare = repoLocToPath(keysLoc);
   auto keysConf = repoConfigDefault("staff");
@@ -532,10 +548,32 @@ void install(string initKeyFile) {
   keysConf.config = ["staff"];
   repoAdd(keysLoc, keysConf);
   execute(["git", "clone", keysBare, keysLocation()]);
-  copy(keyFile, buildPath(keysLocation(), "staff@init.pub"));
+
+  // add users for provided keys
+  bool[string] seenUsers;
+  foreach (keyfile; keyfiles) {
+    // extract user from key file name
+    string user = userFromKeyfile(keyfile);
+    string keyfileName = baseName(keyfile);
+    // if user starts with id_, this is not a legitimate user name
+    // user "staff" as user in that case
+    if (indexOf(user, "id_") == 0) {
+      keyfileName = "staff@" ~ user ~ ".pub";
+      user = "staff";
+    }
+    // actually copy key file
+    copy(keyfile, buildPath(keysLocation(), keyfileName));
+    // add role for this user (but not twice)
+    if (user !in seenUsers) {
+      seenUsers[user] = true;
+      append(buildPath(keysLocation(), "users.conf"), user ~ " : staff");
+    }
+  }
+
+  // commit and push keys
   chdir(keysLocation());
-  execute(["git", "add", "staff@init.pub"]);
-  execute(["git", "commit", "-m", "initial key"]);
+  execute(["git", "add", "-A"]);
+  execute(["git", "commit", "-m", "initial keys"]);
   execute(["git", "push", "origin", "master"]);
   chdir(cwd);
 
@@ -568,14 +606,7 @@ void updateKeys() {
   }
   string[] lines;
   foreach (keyfile; keyfiles) {
-    string user;
-    string stripped = stripExtension(keyfile);
-    auto pos = lastIndexOf(stripped, '@');
-    if (pos > -1) {
-      user = stripped[0..pos];
-    } else {
-      user = stripped;
-    }
+    string user = userFromKeyfile(keyfile);
     const string key = readText(buildPath(keysLocation, keyfile)).strip();
     const string sshOpts = "no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty";
     lines ~= [format("command=\"%s %s\",%s %s\n", appShellPath(), user, sshOpts, key)];
@@ -617,6 +648,29 @@ void gitCommand(string op, RepoLoc loc) {
   enforcef(res == 0, "return '%s' returned code %d", op ~ " " ~ path, res);
 }
 
+void help() {
+  msg("usage:");
+  msg("  %s command [arguments]", appName);
+  msg("");
+  msg("commands:");
+  msg("  --- local+ssh commands ---");
+  msg("  version              print version number");
+  msg("  whoami               print user name and roles");
+  msg("  list                 print repository available to you");
+  msg("  add <repository>     add new repository");
+  msg("  rm <repository>      remove existing repository");
+  msg("  config <repository> [settings...");
+  msg("                       update repository settings, example:");
+  msg("                       config myrepo write+staff read=all config-myuser");
+  msg("  --- local only commands ---");
+  msg("  install <keyfile..>  install tamias using provided key"); 
+  msg("  update-keys          invoke manual key update");
+  msg("  --- ssh only commands ---");
+  msg("  git-upload-pack,");
+  msg("  git-upload-archive,");
+  msg("  git-receive-pack     git internal commands implementing clone/push/pull etc.");
+}
+
 int main(string[] args) {
   bool isLocal;
   string[] command;
@@ -638,7 +692,8 @@ int main(string[] args) {
   }
 
   if (command.length < 1) {
-    log("no command specified");
+    msg("error: no command specified");
+    help();
     return 1;
   }
 
@@ -729,8 +784,8 @@ int main(string[] args) {
         break;
       case "install":
         enforcef(isLocal, "installation only from local command line");
-        enforcef(command.length == 2, "usage: install <initial key file>");
-        install(command[1]);
+        enforcef(command.length >= 2, "usage: install <keyfile..>");
+        install(command[1..$]);
         break;
       case "update-keys":
         lockLock();
@@ -768,12 +823,20 @@ int main(string[] args) {
           enforcef(canRead(conf, user), "insufficient permissions or not a repository");
           enforcef(canWrite(conf, user), "insufficient permissions");
           gitCommand(command[0], loc);
+          // trigger key update if keys repository is uploaded
+          if (loc[0] == "" && loc[1] == "keys") {
+            msgErr("update keys");
+            updateKeys();
+          }
         } catch (Exception e) {
           msgErr("error: %s", e.msg);
         }
         break;
+      case "help":
+        help();
+        break;
       default:
-        throw new Exception(format("unsupported command '%s'", command[0]));
+        throw new Exception(format("unsupported command '%s', try '%s help'", command[0], appName));
     }
   } catch (Exception e) {
     msg("error: %s", e.msg);
