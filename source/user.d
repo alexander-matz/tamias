@@ -51,7 +51,7 @@ User userRead(string username, bool isLocal) {
     foreach (role; split(sides[1])) {
       role = role.strip();
       // check for role name rules
-      const auto re = `^[a-zA-Z0-9_-][a-zA-Z0-9_.\/-]*$`;
+      const auto re = `^[a-zA-Z0-9_-]+$`;
       enforcef(!matchFirst(role, re).empty(), "invalid characters in roles in line '%d' in users.conf", lineNo);
       roles ~= role;
     }

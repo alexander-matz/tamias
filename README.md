@@ -37,13 +37,17 @@ After that build a release version of the tamias sources on your server by execu
 
 `$ dub build --build=release`
 
-Then execute `./tamias install <path to your admin ssh key>` on the server.
+Then execute `./tamias install <ssh-key> [ssh-keys...]` on the server.
+
+It is helpful to supply keys with filenames following the format explained in section
+'Adding/removing users' so you start with a reasonable configuration of users and
+permissions.
 
 # Usage
 
 In addition to the regular git operations clone/pull/fetch/push etc. some additional
 ssh commands are available.
-They are used via like they would be executables on the server.
+They are used like they would be executables on the server.
 So you would execute the command 'list' by executing `ssh git@myserver list`.
 The following commands are available:
 
@@ -58,18 +62,18 @@ The following commands are available:
 
 Access control is kept simple, the only thing that controls what you're able to access
 are your roles.
-A role is a relaxation of posix groups with mostly identical semantics.
-Every user is assuming a configurable number of roles as well as a few special ones.
-All users assume a role that is the name of their username as well as the role 'all'.
+A role is a simpler version of posix groups with mostly the same semantics.
+Every user is assuming a number of different roles as well as a few special ones.
+The special ones are a role that is the name as their username as well as the role 'all'.
 
 A repository has a list for each of the permissions 'read', 'write', 'config'.
-While 'read' and 'write' should be rather straight-forward, 'config' might be unfamiliar.
-The permission 'config' determines who can remove the repository as well as modify
-the owner and access rights of a repository.
+'read' and 'write' are straight forward and just determine who can pull/push a
+repository.
+The 'config' permission allows to modify the values for the owner, read, write, and config
+permissions.
 
-The role 'staff', assumed by the user staff and all users assigned to that role is the
-tamias equivalent of 'root'.
-It has all permissions.
+The role 'staff' is special in that is effectively the tamias equivalent of a 'root' user
+that has all permissions.
 
 The same holds true for the owner of a repository.
 
@@ -92,9 +96,10 @@ In addition to the default roles for users (username + 'all'), roles are specifi
 file 'users.conf' in the 'keys.git' repository.
 It follows a simple format:
 
-` username : role1,role2,role3,...`
+`username : role1 role2 role3 ...`
 
-Whitespaces are optional but encouraged for readability.
+Whitespaces are used to separate roles from another. Allowed characters for roles are
+alphanumeric characters, underscore, and dash.
 
 ## Configuring access permissions
 
@@ -113,7 +118,7 @@ If you're updating the owner, the following syntax is enforced:
 
 `owner=<new-owner>`
 
-If you're update a permission you can either add/remove or set the roles for that permission.
+If you update a permission you can either add/remove or set the roles for that permission.
 In either case you can pass multiple users separated by commas.
 It's explained the most easy way by some examples:
 
