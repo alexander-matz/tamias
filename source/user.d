@@ -8,6 +8,7 @@ import std.file : readText, isFile;
 import std.algorithm.sorting : sort;
 import std.array : split;
 import std.string : strip;
+import std.regex : matchFirst;
 
 struct User {
   string name;
@@ -48,10 +49,16 @@ User userRead(string username, bool isLocal) {
     if (name != username) continue;
 
     foreach (role; split(sides[1])) {
-        roles ~= role.strip();
+      role = role.strip();
+      // check for role name rules
+      const auto re = `^[a-zA-Z0-9_-][a-zA-Z0-9_.\/-]*$`;
+      enforcef(!matchFirst(role, re).empty(), "invalid characters in roles in line '%d' in users.conf", lineNo);
+      roles ~= role;
     }
     break;
   }
+  roles ~= user.roles;
+  user.roles = [];
   sort(roles);
   foreach(role; roles) {
     if (user.roles.length == 0 || user.roles[$-1] != role) {

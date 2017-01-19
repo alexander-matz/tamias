@@ -241,7 +241,7 @@ int main(string[] args) {
       case "whoami":
         enforcef(command.length == 1, "usage: whoami");
         msg("username: %s", user.name);
-        msg("roles: %s", join(user.roles, ","));
+        msg("roles: %s", join(user.roles, ", "));
         break;
       case "install":
         enforcef(isLocal, "installation only from local command line");
@@ -300,7 +300,7 @@ int main(string[] args) {
         throw new Exception(format("unsupported command '%s', try '%s help'", command[0], appName));
     }
   } catch (Exception e) {
-    msg("error: %s", e.msg);
+    msgErr("error: %s", e.msg);
     return 1;
   }
   return 0;
