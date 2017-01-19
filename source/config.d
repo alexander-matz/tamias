@@ -4,7 +4,7 @@ import std.string : format;
 import std.path : buildPath, expandTilde;
 
 const string appName = "tamias";
-const string versionString = "v1.1.0";
+const string versionString = "v1.1.1";
 
 debug {
   const string buildType = "debug";
