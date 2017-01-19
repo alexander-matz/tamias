@@ -86,7 +86,7 @@ void install(string[] keyfiles) {
     // add role for this user (but not twice)
     if (user !in seenUsers) {
       seenUsers[user] = true;
-      append(buildPath(keysLocation(), "users.conf"), user ~ " : staff");
+      append(buildPath(keysLocation(), "users.conf"), user ~ " : staff\n");
     }
   }
 
