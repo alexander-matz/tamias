@@ -2,6 +2,7 @@ module tamias.repoloc;
 
 import tamias.config;
 
+import std.path : buildPath;
 import std.string : tr, chomp, chompPrefix;
 import std.regex : matchFirst;
 import std.array : split;

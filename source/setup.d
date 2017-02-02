@@ -5,9 +5,10 @@ import tamias.util;
 import tamias.repoloc;
 import tamias.repo;
 
-import std.path : baseName, stripExtension, extension;
-import std.string : lastIndexOf, chomp;
-import std.file : isFile, mkdir, copy, chdir, getcwd, thisExePath, readText, write, append, preserveAttributesDefault;
+import std.path : baseName, stripExtension, extension, expandTilde, buildPath;
+import std.string : indexOf, lastIndexOf, chomp, strip;
+import std.array : join;
+import std.file : dirEntries, SpanMode, exists, isFile, mkdir, copy, chdir, getcwd, thisExePath, readText, write, append, preserveAttributesDefault;
 import std.format : format;
 import std.socket : Socket;
 

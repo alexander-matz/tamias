@@ -4,7 +4,7 @@ import tamias.config;
 import tamias.util;
 import tamias.repo;
 
-import std.file : readText, isFile;
+import std.file : exists, readText, isFile;
 import std.algorithm.sorting : sort;
 import std.array : split;
 import std.string : strip;

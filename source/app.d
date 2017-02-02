@@ -5,8 +5,10 @@ import tamias.repoloc;
 import tamias.repo;
 import tamias.user;
 
+import std.string : split;
 import std.format : format;
-import std.process : environment;
+import std.array : join;
+import std.process : environment, spawnProcess, wait;
 
 /******************************************************************************
  * CONFIGURATION INTERFACE
