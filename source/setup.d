@@ -130,5 +130,7 @@ void updateKeys() {
     const string sshOpts = "no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty";
     lines ~= [format("command=\"%s %s\",%s %s\n", appShellPath(), user, sshOpts, key)];
   }
+
   write(authorizedKeys(), lines.join());
+  execute(["chmod", "0600", authorizedKeys()]);
 }
